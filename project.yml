@@ -1,0 +1,62 @@
+name: RosterWren
+
+options:
+  bundleIdPrefix: com.rosterwren
+  createIntermediateGroups: true
+  deploymentTarget:
+    macOS: "14.0"
+
+settings:
+  base:
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+
+targets:
+  RosterWren:
+    type: application
+    platform: macOS
+    sources:
+      - path: RosterWren
+    info:
+      path: RosterWren/Info.plist
+      properties:
+        CFBundleDisplayName: RosterWren
+        CFBundleName: RosterWren
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        LSApplicationCategoryType: public.app-category.productivity
+        LSUIElement: true
+        LSMinimumSystemVersion: "$(MACOSX_DEPLOYMENT_TARGET)"
+        NSHighResolutionCapable: true
+        NSHumanReadableCopyright: "Copyright © 2026. All rights reserved."
+        NSPrincipalClass: NSApplication
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.rosterwren.RosterWren
+        PRODUCT_NAME: RosterWren
+        ENABLE_APP_SANDBOX: false
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: false
+  RosterWrenTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: RosterWrenTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.rosterwren.RosterWrenTests
+        GENERATE_INFOPLIST_FILE: true
+    dependencies:
+      - target: RosterWren
+
+schemes:
+  RosterWren:
+    build:
+      targets:
+        RosterWren: all
+        RosterWrenTests: [test]
+    test:
+      gatherCoverageData: true
+      targets:
+        - name: RosterWrenTests

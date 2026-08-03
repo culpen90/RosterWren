@@ -1,0 +1,506 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		110FFD076F33C2DCB5CFFE11 /* ZoomCaptureSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AF45FC0E494454A10A4FF19 /* ZoomCaptureSnapshot.swift */; };
+		1E1CD882A9AFB4558FF81436 /* MeetingRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE1B17D976DB77F737B98A5 /* MeetingRepositoryTests.swift */; };
+		2BA89078287C052A768F896B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F951912BCB69E4D1259B1FB /* ContentView.swift */; };
+		2CDB98A3B2D68E22BAFE336B /* RosterWrenMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D69049DF8B199D0C01B8070 /* RosterWrenMenu.swift */; };
+		4D3B810E664CDF8F926941CC /* RosterWrenApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9B3B8D77FE163DC37325921 /* RosterWrenApp.swift */; };
+		5D3F565EFD7B8094F2FD6AE6 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55BDABFE1ECCD3187AD612E6 /* AppModel.swift */; };
+		7E3C6631BD7EABCCE9B80B28 /* CapturePhase+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4570B06E23C79534CC19E91 /* CapturePhase+Presentation.swift */; };
+		8A9A1D21D866489C160C2EBE /* ZoomAXTreeParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B757218498A68B5EFA41BAC8 /* ZoomAXTreeParser.swift */; };
+		8C7E95379072FD0C9FFC0315 /* MeetingRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EB7D3DDC1382D9BBE52B1A5 /* MeetingRepository.swift */; };
+		8DBA663AA15606EF614E1E01 /* AppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D2C00433463CBFEBFD2C692 /* AppModelTests.swift */; };
+		8DFA07EEDE0089C79863800C /* ZoomAXSnapshotNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E9E93F2F763A0B3A02BEB87 /* ZoomAXSnapshotNode.swift */; };
+		AA2D5DBAA48476ABC5B40DA3 /* MeetingCSV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21FA637F9718A0EF8408B808 /* MeetingCSV.swift */; };
+		B1991C331527BE7D3F62F64A /* ZoomAXTreeParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2B47CA78A2D8C7A19432DC0 /* ZoomAXTreeParserTests.swift */; };
+		BAA71173C22D50D2263C79B0 /* ZoomAccessibilityClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8C0003FA25077B51FB8400F /* ZoomAccessibilityClient.swift */; };
+		F2166F9D78C11B50D11CB461 /* MeetingRosterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE45F2DF808B4B7040F858B2 /* MeetingRosterTests.swift */; };
+		F434600DCE12F184A574CFDE /* MeetingRoster.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01B3F6658E0A229D4D7D11 /* MeetingRoster.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		690509B72FB432CC231AB0A9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E47AA12E89661369897CA5AE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F0AD1C5A7073C4388A8CF146;
+			remoteInfo = RosterWren;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		1D69049DF8B199D0C01B8070 /* RosterWrenMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosterWrenMenu.swift; sourceTree = "<group>"; };
+		21FA637F9718A0EF8408B808 /* MeetingCSV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingCSV.swift; sourceTree = "<group>"; };
+		2ED2AC353AC2F54DE60473B1 /* RosterWren.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RosterWren.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2F951912BCB69E4D1259B1FB /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		55BDABFE1ECCD3187AD612E6 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		5AF45FC0E494454A10A4FF19 /* ZoomCaptureSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomCaptureSnapshot.swift; sourceTree = "<group>"; };
+		5D2C00433463CBFEBFD2C692 /* AppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelTests.swift; sourceTree = "<group>"; };
+		6FFF90150CE7679BBDEDAC6F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		7E9E93F2F763A0B3A02BEB87 /* ZoomAXSnapshotNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomAXSnapshotNode.swift; sourceTree = "<group>"; };
+		9EB7D3DDC1382D9BBE52B1A5 /* MeetingRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingRepository.swift; sourceTree = "<group>"; };
+		A8C0003FA25077B51FB8400F /* ZoomAccessibilityClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomAccessibilityClient.swift; sourceTree = "<group>"; };
+		AA01B3F6658E0A229D4D7D11 /* MeetingRoster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingRoster.swift; sourceTree = "<group>"; };
+		B2B47CA78A2D8C7A19432DC0 /* ZoomAXTreeParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomAXTreeParserTests.swift; sourceTree = "<group>"; };
+		B757218498A68B5EFA41BAC8 /* ZoomAXTreeParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomAXTreeParser.swift; sourceTree = "<group>"; };
+		BE45F2DF808B4B7040F858B2 /* MeetingRosterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingRosterTests.swift; sourceTree = "<group>"; };
+		DAE1B17D976DB77F737B98A5 /* MeetingRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingRepositoryTests.swift; sourceTree = "<group>"; };
+		E4570B06E23C79534CC19E91 /* CapturePhase+Presentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CapturePhase+Presentation.swift"; sourceTree = "<group>"; };
+		F9B3B8D77FE163DC37325921 /* RosterWrenApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosterWrenApp.swift; sourceTree = "<group>"; };
+		FFB877DA0FD418285832C124 /* RosterWrenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RosterWrenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0C545FD9A20342C01A8E5EE8 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				E4570B06E23C79534CC19E91 /* CapturePhase+Presentation.swift */,
+				2F951912BCB69E4D1259B1FB /* ContentView.swift */,
+				1D69049DF8B199D0C01B8070 /* RosterWrenMenu.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		3F7EA61FDD97E0D44452031C /* App */ = {
+			isa = PBXGroup;
+			children = (
+				55BDABFE1ECCD3187AD612E6 /* AppModel.swift */,
+				F9B3B8D77FE163DC37325921 /* RosterWrenApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		3F9E1A686B2C277936FFA637 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				5D2C00433463CBFEBFD2C692 /* AppModelTests.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		41DD7379D1D9D1B4034A1CF5 /* RosterWrenTests */ = {
+			isa = PBXGroup;
+			children = (
+				3F9E1A686B2C277936FFA637 /* App */,
+				4BC44A71F420FF01D6EC4A99 /* Core */,
+				B86235071BECEC895DBF282B /* Zoom */,
+			);
+			path = RosterWrenTests;
+			sourceTree = "<group>";
+		};
+		4BC44A71F420FF01D6EC4A99 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				DAE1B17D976DB77F737B98A5 /* MeetingRepositoryTests.swift */,
+				BE45F2DF808B4B7040F858B2 /* MeetingRosterTests.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		719AEED89827CDBE6B244EB2 = {
+			isa = PBXGroup;
+			children = (
+				7AC6ADD219218BE99DE8EA93 /* RosterWren */,
+				41DD7379D1D9D1B4034A1CF5 /* RosterWrenTests */,
+				9AA67E8B9ACEE3A9DD3BAAD6 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7AC6ADD219218BE99DE8EA93 /* RosterWren */ = {
+			isa = PBXGroup;
+			children = (
+				6FFF90150CE7679BBDEDAC6F /* Info.plist */,
+				3F7EA61FDD97E0D44452031C /* App */,
+				CBD0CCA2D0E00D7818F568AC /* Core */,
+				0C545FD9A20342C01A8E5EE8 /* UI */,
+				AEE9AE40D1B864AFED823091 /* Zoom */,
+			);
+			path = RosterWren;
+			sourceTree = "<group>";
+		};
+		9AA67E8B9ACEE3A9DD3BAAD6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2ED2AC353AC2F54DE60473B1 /* RosterWren.app */,
+				FFB877DA0FD418285832C124 /* RosterWrenTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AEE9AE40D1B864AFED823091 /* Zoom */ = {
+			isa = PBXGroup;
+			children = (
+				A8C0003FA25077B51FB8400F /* ZoomAccessibilityClient.swift */,
+				7E9E93F2F763A0B3A02BEB87 /* ZoomAXSnapshotNode.swift */,
+				B757218498A68B5EFA41BAC8 /* ZoomAXTreeParser.swift */,
+				5AF45FC0E494454A10A4FF19 /* ZoomCaptureSnapshot.swift */,
+			);
+			path = Zoom;
+			sourceTree = "<group>";
+		};
+		B86235071BECEC895DBF282B /* Zoom */ = {
+			isa = PBXGroup;
+			children = (
+				B2B47CA78A2D8C7A19432DC0 /* ZoomAXTreeParserTests.swift */,
+			);
+			path = Zoom;
+			sourceTree = "<group>";
+		};
+		CBD0CCA2D0E00D7818F568AC /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				21FA637F9718A0EF8408B808 /* MeetingCSV.swift */,
+				9EB7D3DDC1382D9BBE52B1A5 /* MeetingRepository.swift */,
+				AA01B3F6658E0A229D4D7D11 /* MeetingRoster.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1EDAAF5B3A731D0BC05F759C /* RosterWrenTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6103739DC78B23ABF71355D0 /* Build configuration list for PBXNativeTarget "RosterWrenTests" */;
+			buildPhases = (
+				04411D6E35A1A1F3CF6B8F71 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4AA726935CC79A9E7B547425 /* PBXTargetDependency */,
+			);
+			name = RosterWrenTests;
+			packageProductDependencies = (
+			);
+			productName = RosterWrenTests;
+			productReference = FFB877DA0FD418285832C124 /* RosterWrenTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		F0AD1C5A7073C4388A8CF146 /* RosterWren */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D20447344B814F8085832128 /* Build configuration list for PBXNativeTarget "RosterWren" */;
+			buildPhases = (
+				BF00AE397AD62FCAD1413988 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RosterWren;
+			packageProductDependencies = (
+			);
+			productName = RosterWren;
+			productReference = 2ED2AC353AC2F54DE60473B1 /* RosterWren.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E47AA12E89661369897CA5AE /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					F0AD1C5A7073C4388A8CF146 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = FE2BF7D25FCF71E3B6A6F263 /* Build configuration list for PBXProject "RosterWren" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 719AEED89827CDBE6B244EB2;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 9AA67E8B9ACEE3A9DD3BAAD6 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F0AD1C5A7073C4388A8CF146 /* RosterWren */,
+				1EDAAF5B3A731D0BC05F759C /* RosterWrenTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		04411D6E35A1A1F3CF6B8F71 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8DBA663AA15606EF614E1E01 /* AppModelTests.swift in Sources */,
+				1E1CD882A9AFB4558FF81436 /* MeetingRepositoryTests.swift in Sources */,
+				F2166F9D78C11B50D11CB461 /* MeetingRosterTests.swift in Sources */,
+				B1991C331527BE7D3F62F64A /* ZoomAXTreeParserTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF00AE397AD62FCAD1413988 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5D3F565EFD7B8094F2FD6AE6 /* AppModel.swift in Sources */,
+				7E3C6631BD7EABCCE9B80B28 /* CapturePhase+Presentation.swift in Sources */,
+				2BA89078287C052A768F896B /* ContentView.swift in Sources */,
+				AA2D5DBAA48476ABC5B40DA3 /* MeetingCSV.swift in Sources */,
+				8C7E95379072FD0C9FFC0315 /* MeetingRepository.swift in Sources */,
+				F434600DCE12F184A574CFDE /* MeetingRoster.swift in Sources */,
+				4D3B810E664CDF8F926941CC /* RosterWrenApp.swift in Sources */,
+				2CDB98A3B2D68E22BAFE336B /* RosterWrenMenu.swift in Sources */,
+				8DFA07EEDE0089C79863800C /* ZoomAXSnapshotNode.swift in Sources */,
+				8A9A1D21D866489C160C2EBE /* ZoomAXTreeParser.swift in Sources */,
+				BAA71173C22D50D2263C79B0 /* ZoomAccessibilityClient.swift in Sources */,
+				110FFD076F33C2DCB5CFFE11 /* ZoomCaptureSnapshot.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4AA726935CC79A9E7B547425 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F0AD1C5A7073C4388A8CF146 /* RosterWren */;
+			targetProxy = 690509B72FB432CC231AB0A9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		07422FC8C2B139588D9868BA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.rosterwren.RosterWrenTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RosterWren.app/Contents/MacOS/RosterWren";
+			};
+			name = Debug;
+		};
+		61DC2A62B91B728F2C491F3A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		94D3C0BE25DAC16E5F75598A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.rosterwren.RosterWrenTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RosterWren.app/Contents/MacOS/RosterWren";
+			};
+			name = Release;
+		};
+		A065B0C1035E43F329F8FFF2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		A0EE8E08A6454D791E075CE3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = RosterWren/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.rosterwren.RosterWren;
+				PRODUCT_NAME = RosterWren;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		E162248E864332D7B8CA798C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = RosterWren/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.rosterwren.RosterWren;
+				PRODUCT_NAME = RosterWren;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6103739DC78B23ABF71355D0 /* Build configuration list for PBXNativeTarget "RosterWrenTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				07422FC8C2B139588D9868BA /* Debug */,
+				94D3C0BE25DAC16E5F75598A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D20447344B814F8085832128 /* Build configuration list for PBXNativeTarget "RosterWren" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A0EE8E08A6454D791E075CE3 /* Debug */,
+				E162248E864332D7B8CA798C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FE2BF7D25FCF71E3B6A6F263 /* Build configuration list for PBXProject "RosterWren" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A065B0C1035E43F329F8FFF2 /* Debug */,
+				61DC2A62B91B728F2C491F3A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E47AA12E89661369897CA5AE /* Project object */;
+}
