@@ -1,0 +1,116 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+
+concurrency:
+  group: release-${{ github.ref }}
+  queue: max
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - name: Check out the source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.19.0
+          cache: npm
+
+      - name: Verify the toolchain
+        shell: bash
+        run: |
+          test -d "$DEVELOPER_DIR"
+          ./scripts/install-xcodegen.sh
+          xcodebuild -version
+
+      - name: Install release dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Block critical release dependency advisories
+        run: npm audit --audit-level=critical
+
+      - name: Test release configuration
+        run: npm test
+
+      - name: Test RosterWren
+        run: make test
+
+  release:
+    name: Package and publish
+    if: github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: macos-26
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the complete release history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.19.0
+          cache: npm
+
+      - name: Verify the packaging toolchain
+        shell: bash
+        run: |
+          test -d "$DEVELOPER_DIR"
+          ./scripts/install-xcodegen.sh
+          xcodebuild -version
+          gh --version
+
+      - name: Install release dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Configure release signing policy
+        env:
+          ALLOW_ADHOC_RELEASES: ${{ vars.ALLOW_ADHOC_RELEASES }}
+          MACOS_CERTIFICATE_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          APPLE_API_KEY_P8_BASE64: ${{ secrets.APPLE_API_KEY_P8_BASE64 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: ./scripts/configure-release-signing.sh
+
+      - name: Reconcile releases and bootstrap 0.1.0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INITIAL_RELEASE_VERSION: 0.1.0
+        run: ./scripts/reconcile-releases.sh
+
+      - name: Build and publish the semantic release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run release
+
+      - name: Remove temporary signing credentials
+        if: always()
+        shell: bash
+        run: |
+          if [[ -n "${ROSTERWREN_KEYCHAIN_PATH:-}" ]]; then
+            security delete-keychain "$ROSTERWREN_KEYCHAIN_PATH" || true
+          fi
+          if [[ -n "${APPLE_API_KEY_FILE:-}" ]]; then
+            rm -f "$APPLE_API_KEY_FILE"
+          fi

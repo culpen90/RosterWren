@@ -1,0 +1,17 @@
+{
+  "name": "rosterwren-release-automation",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=24.10.0 <25"
+  },
+  "scripts": {
+    "release": "semantic-release",
+    "test": "node --test scripts/semantic-release-config.test.cjs"
+  },
+  "devDependencies": {
+    "@semantic-release/exec": "7.1.0",
+    "conventional-changelog-conventionalcommits": "9.3.1",
+    "semantic-release": "25.0.8"
+  }
+}

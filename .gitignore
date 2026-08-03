@@ -2,5 +2,6 @@
 .build/
 DerivedData/
 dist/
+node_modules/
 *.xcuserstate
 xcuserdata/
