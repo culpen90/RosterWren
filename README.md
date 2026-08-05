@@ -32,7 +32,7 @@ make test
 make app
 ```
 
-`make app` writes a versioned universal DMG, app ZIP, dSYM archive, and SHA-256 checksum file under `dist/`. For example, the default build produces `dist/RosterWren-0.1.0-macOS-universal.dmg`. Open the image and move RosterWren to a stable location such as `/Applications` before granting Accessibility access.
+`make app` writes a versioned universal DMG, app ZIP, dSYM archive, and SHA-256 checksum file under `dist/`. The default version comes from `MARKETING_VERSION` in `project.yml`, producing a file such as `dist/RosterWren-X.Y.Z-macOS-universal.dmg`. Open the image and move RosterWren to a stable location such as `/Applications` before granting Accessibility access.
 
 For a local build, the package script automatically uses an installed Apple Development identity when one is available. This gives macOS a stable designated requirement so Accessibility access continues to match rebuilt versions of the app. Set `MACOS_DEVELOPMENT_SIGNING_IDENTITY` to select a specific local identity. If no stable identity is available, packaging falls back to an ad-hoc signature and warns that Accessibility access may need to be removed and granted again after each rebuild. A public release still requires a Developer ID identity, timestamping, and notarization.
 
@@ -45,7 +45,7 @@ Pushes to `main` are verified and evaluated by Semantic Release. The first succe
 - `!` or a `BREAKING CHANGE:` footer publishes a major release.
 - `build:`, `chore:`, `ci:`, `docs:`, `refactor:`, `style:`, and `test:` do not publish a release by themselves.
 
-Each immutable GitHub Release includes generated notes, a universal macOS DMG, a direct app ZIP, dSYMs, and SHA-256 checksums. Public automation fails closed until Developer ID signing and Apple notarization secrets are configured. A maintainer can explicitly opt into visibly warned development-only releases with the `ALLOW_ADHOC_RELEASES` repository variable. See [docs/RELEASING.md](docs/RELEASING.md) for the release contract and signing setup.
+Before publishing, the bot writes the calculated version to the Xcode source metadata and commits the regenerated project as `chore(release): X.Y.Z [skip ci]`; the release tag points to that commit. Each immutable GitHub Release includes generated notes, a universal macOS DMG, a direct app ZIP, dSYMs, and SHA-256 checksums. Public automation fails closed until Developer ID signing and Apple notarization secrets are configured. A maintainer can explicitly opt into visibly warned development-only releases with the `ALLOW_ADHOC_RELEASES` repository variable. See [docs/RELEASING.md](docs/RELEASING.md) for the release contract and signing setup.
 
 ## Use
 
