@@ -61,6 +61,8 @@ cd dist
 shasum -a 256 -c RosterWren-0.1.0-SHA256SUMS.txt
 ```
 
+On a developer Mac, `make app` automatically selects the first valid Apple Development identity so TCC permissions such as Accessibility remain associated with the app across rebuilds. Set `MACOS_DEVELOPMENT_SIGNING_IDENTITY` to a certificate name or SHA-1 hash to choose one explicitly. If none is available, the package is ad-hoc signed and the script prints a warning; that fallback is unsuitable for testing permission persistence across builds. `ROSTERWREN_SIGNING_MODE=adhoc` continues to force the explicitly warned CI fallback and never auto-selects a local certificate.
+
 Do not disable immutable releases or create release tags by hand after the bootstrap. Use Conventional Commits and let the release workflow own version calculation, tagging, notes, packaging, and publication.
 
 On an exact `vX.Y.Z` checkout, plain `make app` derives `X.Y.Z` from the tag. On an untagged development checkout it uses `MARKETING_VERSION` from `project.yml`; `VERSION=X.Y.Z` remains available as an explicit override.

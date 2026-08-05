@@ -32,7 +32,9 @@ make test
 make app
 ```
 
-`make app` writes a versioned universal DMG, app ZIP, dSYM archive, and SHA-256 checksum file under `dist/`. For example, the default build produces `dist/RosterWren-0.1.0-macOS-universal.dmg`. Open the image and move RosterWren to a stable location such as `/Applications` before granting Accessibility access. The local package uses an ad-hoc hardened-runtime signature unless release signing credentials are provided; rebuilding it may require granting access again. A public release should use a stable Developer ID identity, timestamping, and notarization.
+`make app` writes a versioned universal DMG, app ZIP, dSYM archive, and SHA-256 checksum file under `dist/`. For example, the default build produces `dist/RosterWren-0.1.0-macOS-universal.dmg`. Open the image and move RosterWren to a stable location such as `/Applications` before granting Accessibility access.
+
+For a local build, the package script automatically uses an installed Apple Development identity when one is available. This gives macOS a stable designated requirement so Accessibility access continues to match rebuilt versions of the app. Set `MACOS_DEVELOPMENT_SIGNING_IDENTITY` to select a specific local identity. If no stable identity is available, packaging falls back to an ad-hoc signature and warns that Accessibility access may need to be removed and granted again after each rebuild. A public release still requires a Developer ID identity, timestamping, and notarization.
 
 ## Automatic releases
 
@@ -52,6 +54,8 @@ Each immutable GitHub Release includes generated notes, a universal macOS DMG, a
 3. If necessary, enable RosterWren in **System Settings → Privacy & Security → Accessibility**, then relaunch it.
 4. Leave RosterWren running in the menu bar and join a meeting in the regular Zoom Workplace app.
 5. Use **Open Roster Folder** to view the live checkpoint and completed CSV/JSON files.
+
+macOS grants Accessibility access to a specific signed copy of an app. If RosterWren remains blocked even though an entry is enabled, quit it with **Quit RosterWren** from its menu-bar menu, remove stale RosterWren entries in Accessibility settings, add the final `/Applications/RosterWren.app` copy, and reopen it. Closing the main window does not quit the menu-bar app. Do not grant access to the copy still inside the mounted disk image.
 
 By default, RosterWren stores rosters in its Application Support directory. If you choose another location, it creates a dedicated `RosterWren Meetings` child there and does not change the parent folder's permissions. It writes a unique directory there for each detected meeting. During a meeting it atomically replaces each of `meeting.json.inprogress` and `participants.csv`; after the meeting ends it publishes `meeting.json`, refreshes the CSV, and removes the checkpoint. Files and app-owned directories use owner-only permissions.
 

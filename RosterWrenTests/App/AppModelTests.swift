@@ -76,6 +76,39 @@ final class AppModelTests: XCTestCase {
         XCTAssertFalse(noPermission.source.promptArguments.contains(true))
     }
 
+    func testPassivePollRecognizesAccessibilityAccessGrantedInSettings() async throws {
+        let fixture = try makeFixture(consented: true, trusted: false)
+        defer { fixture.cleanup() }
+
+        XCTAssertEqual(fixture.model.phase, .permissionRequired)
+        XCTAssertFalse(fixture.model.isAccessibilityTrusted)
+
+        fixture.source.trusted = true
+        fixture.source.snapshots = [snapshot(zoomRunning: false)]
+        await fixture.model.runOnePoll()
+
+        XCTAssertTrue(fixture.model.isAccessibilityTrusted)
+        XCTAssertEqual(fixture.model.phase, .waitingForZoom)
+        XCTAssertEqual(fixture.source.captureCallCount, 1)
+        XCTAssertFalse(fixture.source.promptArguments.contains(true))
+    }
+
+    func testPassivePollRecognizesAccessibilityAccessRevokedInSettings() async throws {
+        let fixture = try makeFixture(consented: true, trusted: true)
+        defer { fixture.cleanup() }
+
+        XCTAssertEqual(fixture.model.phase, .waitingForZoom)
+        XCTAssertTrue(fixture.model.isAccessibilityTrusted)
+
+        fixture.source.trusted = false
+        await fixture.model.runOnePoll()
+
+        XCTAssertFalse(fixture.model.isAccessibilityTrusted)
+        XCTAssertEqual(fixture.model.phase, .permissionRequired)
+        XCTAssertEqual(fixture.source.captureCallCount, 0)
+        XCTAssertFalse(fixture.source.promptArguments.contains(true))
+    }
+
     func testRevealRetriesOnlyWhenNoActionReachedZoom() async throws {
         let clock = TestNow(Date(timeIntervalSince1970: 1_700_100_000))
         let fixture = try makeFixture(
@@ -143,10 +176,17 @@ final class AppModelTests: XCTestCase {
         defer { fixture.cleanup() }
 
         fixture.source.snapshots = [
-            snapshot(meeting: true, panel: true, names: ["A"], token: "a"),
-            snapshot(meeting: true, panel: true, names: ["A"], token: "a"),
+            snapshot(meeting: true, panel: true, names: ["A", "B"], token: "a"),
+            snapshot(meeting: true, panel: true, names: ["A", "B"], token: "a"),
             snapshot(),
-            snapshot(reliable: false, warnings: ["Temporary AX failure"]),
+            snapshot(
+                meeting: true,
+                panel: true,
+                names: ["A"],
+                token: "a",
+                reliable: false,
+                warnings: ["Temporary AX failure"]
+            ),
             snapshot()
         ]
 
@@ -159,6 +199,7 @@ final class AppModelTests: XCTestCase {
         await fixture.model.runOnePoll()
         XCTAssertEqual(fixture.model.phase, .error("Temporary AX failure"))
         XCTAssertTrue(fixture.model.hasActiveMeeting)
+        XCTAssertEqual(fixture.model.currentNames, ["A", "B"])
 
         await fixture.model.runOnePoll()
         XCTAssertEqual(fixture.model.phase, .ending(secondsRemaining: 15))

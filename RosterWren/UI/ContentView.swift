@@ -156,6 +156,27 @@ private extension ContentView {
                     }
                 }
 
+                if !model.isAccessibilityTrusted {
+                    Divider()
+
+                    VStack(alignment: .leading, spacing: 5) {
+                        Label(
+                            "macOS must authorize this signed copy of RosterWren:",
+                            systemImage: "app.badge.checkmark"
+                        )
+                        .font(.callout.weight(.medium))
+
+                        Text(Bundle.main.bundleURL.path)
+                            .font(.caption.monospaced())
+                            .textSelection(.enabled)
+
+                        Text("If an older RosterWren entry is already enabled, remove it and add the copy shown above. Quit from the menu-bar menu before reopening; closing this window keeps RosterWren running.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+
                 Toggle(
                     "Open Zoom's Participants panel once when a meeting begins",
                     isOn: $model.autoRevealParticipants
