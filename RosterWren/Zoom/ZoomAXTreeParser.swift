@@ -27,6 +27,18 @@ public struct ZoomAXTreeParser: Sendable {
     public static let panelistCellIdentifier = "ZMHCTableItemType_PANELIST"
     public static let panelistHeaderIdentifier = "ZMHCTableItemType_PANELIST_Group"
 
+    /// Live scans request AXIdentifier only for roles whose identifiers are
+    /// part of the parser contract. Some unrelated Zoom web-view nodes return
+    /// a generic AX failure for this optional attribute.
+    static func identifierIsRelevant(forRole role: String?) -> Bool {
+        switch role {
+        case "AXWindow", "AXButton", "AXMenuItem", "AXCell":
+            true
+        default:
+            false
+        }
+    }
+
     public let limits: Limits
 
     public init(limits: Limits = Limits()) {
@@ -93,13 +105,15 @@ public struct ZoomAXTreeParser: Sendable {
         root: ZoomAXSnapshotNode,
         meetingDetected: Bool,
         panelDetected: Bool,
-        callerAllowsReveal: Bool
+        callerAllowsReveal: Bool,
+        safeMenuFallbackAvailable: Bool = false
     ) -> ZoomRevealDecision {
         guard callerAllowsReveal, meetingDetected, !panelDetected else {
             return .none
         }
 
         var search = RevealSearchState(remainingNodes: limits.maximumNodes)
+        search.foundSafeMenuFallback = safeMenuFallbackAvailable
         searchForRevealControls(
             root,
             depth: 0,

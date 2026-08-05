@@ -4,6 +4,22 @@ import XCTest
 final class ZoomAXTreeParserTests: XCTestCase {
     private let parser = ZoomAXTreeParser()
 
+    func testIdentifierReadPolicyCoversOnlyRolesUsedByParser() {
+        for role in ["AXWindow", "AXButton", "AXMenuItem", "AXCell"] {
+            XCTAssertTrue(
+                ZoomAXTreeParser.identifierIsRelevant(forRole: role),
+                "Expected identifiers to be relevant for \(role)"
+            )
+        }
+
+        for role in [nil, "AXApplication", "AXUnknown", "AXGroup", "AXOutline", "AXStaticText"] {
+            XCTAssertFalse(
+                ZoomAXTreeParser.identifierIsRelevant(forRole: role),
+                "Expected identifiers to be irrelevant for \(role ?? "nil")"
+            )
+        }
+    }
+
     func testExtractsFirstStaticTextFromPanelistCellsAndPreservesDuplicates() {
         let root = application(children: [
             meetingWindow(children: []),
@@ -43,6 +59,27 @@ final class ZoomAXTreeParserTests: XCTestCase {
         XCTAssertTrue(result.meetingDetected)
         XCTAssertTrue(result.panelDetected)
         XCTAssertEqual(result.names, ["Sibling attendee"])
+    }
+
+    func testTraversesUnrelatedUnknownNodesWithoutUsingThemAsRosterEvidence() {
+        let root = application(children: [
+            .init(
+                role: "AXUnknown",
+                children: [.init(role: "AXGroup", children: [])]
+            ),
+            meetingWindow(children: []),
+            participantWindow(children: [
+                participantsList(children: [panelistCell(name: "Casey")])
+            ])
+        ])
+
+        let result = parser.parse(root: root, zoomRunning: true, version: "7.1.0")
+
+        XCTAssertTrue(result.meetingDetected)
+        XCTAssertTrue(result.panelDetected)
+        XCTAssertEqual(result.names, ["Casey"])
+        XCTAssertTrue(result.isReliable)
+        XCTAssertTrue(result.warnings.isEmpty)
     }
 
     func testExcludesHeaderInviteesAndTextOutsidePanelistCells() {
@@ -188,7 +225,8 @@ final class ZoomAXTreeParserTests: XCTestCase {
                 root: open,
                 meetingDetected: true,
                 panelDetected: false,
-                callerAllowsReveal: true
+                callerAllowsReveal: true,
+                safeMenuFallbackAvailable: true
             ),
             .none
         )
@@ -232,6 +270,21 @@ final class ZoomAXTreeParserTests: XCTestCase {
                 callerAllowsReveal: true
             ),
             .none
+        )
+    }
+
+    func testRevealDecisionUsesSafeMenuFallbackDiscoveredOutsideRosterTree() {
+        let root = application(children: [meetingWindow(children: [])])
+
+        XCTAssertEqual(
+            parser.revealDecision(
+                root: root,
+                meetingDetected: true,
+                panelDetected: false,
+                callerAllowsReveal: true,
+                safeMenuFallbackAvailable: true
+            ),
+            .pressShowParticipantsMenuItem
         )
     }
 

@@ -1,6 +1,12 @@
 import AppKit
 import ApplicationServices
 import Foundation
+import OSLog
+
+private let zoomAXLogger = Logger(
+    subsystem: "com.rosterwren.RosterWren",
+    category: "ZoomAccessibility"
+)
 
 /// Discovers Zoom on the main actor, then delegates bounded Accessibility work
 /// to a utility task so a stalled Zoom process cannot freeze the app's UI.
@@ -149,11 +155,21 @@ private struct ZoomAccessibilityWorker: Sendable {
         guard !builder.cancelled, !Task.isCancelled else {
             return cancelledSnapshot()
         }
+        if allowReveal,
+           initial.isReliable,
+           initial.meetingDetected,
+           !initial.panelDetected {
+            builder.findShowParticipantsMenuItem(from: appElement)
+        }
+        guard !builder.cancelled, !Task.isCancelled else {
+            return cancelledSnapshot()
+        }
         let decision = parser.revealDecision(
             root: root,
             meetingDetected: initial.meetingDetected,
             panelDetected: initial.panelDetected,
-            callerAllowsReveal: allowReveal && initial.isReliable
+            callerAllowsReveal: allowReveal && initial.isReliable,
+            safeMenuFallbackAvailable: builder.showParticipantsMenuItem != nil
         )
 
         var revealAttempted = false
@@ -273,8 +289,24 @@ private struct LiveTreeBuilder {
         visitedElements.append(element)
         remainingNodes -= 1
 
-        let role = stringAttribute(kAXRoleAttribute, from: element)
-        let identifier = stringAttribute(kAXIdentifierAttribute, from: element)
+        let role = stringAttribute(
+            kAXRoleAttribute,
+            from: element,
+            required: true
+        )
+        if depth == 0, let role, role != "AXApplication" {
+            markUnreliableType(
+                attribute: kAXRoleAttribute,
+                element: element,
+                detail: "unexpected-root-role"
+            )
+        }
+        let identifier = ZoomAXTreeParser.identifierIsRelevant(forRole: role)
+            ? stringAttribute(
+                kAXIdentifierAttribute,
+                from: element
+            )
+            : nil
         let isParticipantButton = role == "AXButton"
             && identifier == ZoomAXTreeParser.participantButtonIdentifier
         let isShowParticipantsMenuItem = role == "AXMenuItem"
@@ -284,18 +316,27 @@ private struct LiveTreeBuilder {
         // descriptions from unrelated controls.
         let accessibilityDescription: String?
         if isParticipantButton || role == "AXOutline" {
-            accessibilityDescription = stringAttribute(kAXDescriptionAttribute, from: element)
+            accessibilityDescription = stringAttribute(
+                kAXDescriptionAttribute,
+                from: element
+            )
         } else {
             accessibilityDescription = nil
         }
         let title = isShowParticipantsMenuItem
-            ? stringAttribute(kAXTitleAttribute, from: element)
+            ? stringAttribute(
+                kAXTitleAttribute,
+                from: element
+            )
             : nil
         let isMeetingWindow = role == "AXWindow"
             && identifier == ZoomAXTreeParser.meetingWindowIdentifier
         let elementToken: String?
         if isMeetingWindow,
-           let windowNumber = copyAttribute("AXWindowNumber", from: element) as? NSNumber {
+           let windowNumber = copyAttribute(
+               "AXWindowNumber",
+               from: element
+           ) as? NSNumber {
             elementToken = "\(processIdentifier):window:\(windowNumber.int64Value)"
         } else if isMeetingWindow {
             elementToken = "\(processIdentifier):element:\(String(CFHash(element), radix: 16))"
@@ -314,7 +355,10 @@ private struct LiveTreeBuilder {
         // source, and it is never requested outside a confirmed panelist cell.
         let value: String?
         if isInsidePanelistCell, role == "AXStaticText" {
-            value = stringAttribute(kAXValueAttribute, from: element)
+            value = stringAttribute(
+                kAXValueAttribute,
+                from: element
+            )
         } else {
             value = nil
         }
@@ -333,7 +377,10 @@ private struct LiveTreeBuilder {
         }
 
         var children: [ZoomAXSnapshotNode] = []
-        for child in elementChildren(of: element, role: role) {
+        for child in elementChildren(
+            of: element,
+            isApplicationRoot: depth == 0
+        ) {
             guard remainingNodes > 0 else {
                 truncated = true
                 break
@@ -360,29 +407,162 @@ private struct LiveTreeBuilder {
         )
     }
 
-    private mutating func stringAttribute(_ name: String, from element: AXUIElement) -> String? {
-        copyAttribute(name, from: element) as? String
+    private mutating func stringAttribute(
+        _ name: String,
+        from element: AXUIElement,
+        affectsReliability: Bool = true,
+        required: Bool = false
+    ) -> String? {
+        guard let value = copyAttribute(
+            name,
+            from: element,
+            affectsReliability: affectsReliability,
+            required: required
+        ) else {
+            return nil
+        }
+        guard let string = value as? String else {
+            if affectsReliability {
+                markUnreliableType(
+                    attribute: name,
+                    element: element,
+                    detail: "unexpected-type"
+                )
+            }
+            return nil
+        }
+        return string
     }
 
-    private mutating func elementChildren(of element: AXUIElement, role: String?) -> [AXUIElement] {
-        var result = copyAttribute(kAXChildrenAttribute, from: element) as? [AXUIElement] ?? []
-        guard role == "AXApplication" else { return result }
-
-        // Depending on Zoom/macOS versions, sibling windows and the menu bar
-        // are not always included in AXChildren. Explicitly add both sources;
-        // cycle/equality de-duplication above keeps this finite.
-        if let windows = copyAttribute(kAXWindowsAttribute, from: element) as? [AXUIElement] {
-            result.append(contentsOf: windows)
+    private mutating func elementChildren(
+        of element: AXUIElement,
+        isApplicationRoot: Bool
+    ) -> [AXUIElement] {
+        if isApplicationRoot {
+            return elementArrayAttribute(
+                kAXWindowsAttribute,
+                from: element,
+                required: true
+            )
         }
-        if let menuBarValue = copyAttribute(kAXMenuBarAttribute, from: element),
-           CFGetTypeID(menuBarValue) == AXUIElementGetTypeID() {
-            let menuBar = unsafeDowncast(menuBarValue, to: AXUIElement.self)
-            result.append(menuBar)
-        }
-        return result
+        return elementArrayAttribute(kAXChildrenAttribute, from: element)
     }
 
-    private mutating func copyAttribute(_ name: String, from element: AXUIElement) -> CFTypeRef? {
+    private mutating func elementArrayAttribute(
+        _ name: String,
+        from element: AXUIElement,
+        affectsReliability: Bool = true,
+        required: Bool = false
+    ) -> [AXUIElement] {
+        guard let value = copyAttribute(
+            name,
+            from: element,
+            affectsReliability: affectsReliability,
+            required: required
+        ) else {
+            return []
+        }
+        guard let elements = value as? [AXUIElement] else {
+            if affectsReliability {
+                markUnreliableType(
+                    attribute: name,
+                    element: element,
+                    detail: "unexpected-type"
+                )
+            }
+            return []
+        }
+        return elements
+    }
+
+    /// Searches the optional menu fallback outside the roster snapshot. Menu
+    /// failures, depth, and node limits can suppress reveal for this pass, but
+    /// can never invalidate or contribute roster evidence.
+    mutating func findShowParticipantsMenuItem(from application: AXUIElement) {
+        guard showParticipantsMenuItem == nil,
+              let menuBarValue = copyAttribute(
+                  kAXMenuBarAttribute,
+                  from: application,
+                  affectsReliability: false
+              ),
+              CFGetTypeID(menuBarValue) == AXUIElementGetTypeID() else {
+            return
+        }
+
+        let menuBar = unsafeDowncast(menuBarValue, to: AXUIElement.self)
+        var remainingRevealNodes = limits.maximumNodes
+        var visitedRevealElements: [AXUIElement] = []
+        searchRevealMenu(
+            element: menuBar,
+            depth: 0,
+            remainingNodes: &remainingRevealNodes,
+            visitedElements: &visitedRevealElements
+        )
+    }
+
+    private mutating func searchRevealMenu(
+        element: AXUIElement,
+        depth: Int,
+        remainingNodes: inout Int,
+        visitedElements: inout [AXUIElement]
+    ) {
+        guard !Task.isCancelled else {
+            cancelled = true
+            isReliable = false
+            return
+        }
+        guard showParticipantsMenuItem == nil,
+              depth <= limits.maximumDepth,
+              remainingNodes > 0,
+              !visitedElements.contains(where: { CFEqual($0, element) }) else {
+            return
+        }
+        visitedElements.append(element)
+        remainingNodes -= 1
+
+        let role = stringAttribute(
+            kAXRoleAttribute,
+            from: element,
+            affectsReliability: false
+        )
+        if role == "AXMenuItem",
+           stringAttribute(
+               kAXIdentifierAttribute,
+               from: element,
+               affectsReliability: false
+           ) == ZoomAXTreeParser.showParticipantsMenuIdentifier,
+           stringAttribute(
+               kAXTitleAttribute,
+               from: element,
+               affectsReliability: false
+           ) == ZoomAXTreeParser.showParticipantsMenuTitle {
+            showParticipantsMenuItem = element
+            return
+        }
+
+        for child in elementArrayAttribute(
+            kAXChildrenAttribute,
+            from: element,
+            affectsReliability: false
+        ) {
+            searchRevealMenu(
+                element: child,
+                depth: depth + 1,
+                remainingNodes: &remainingNodes,
+                visitedElements: &visitedElements
+            )
+            if showParticipantsMenuItem != nil || cancelled {
+                return
+            }
+        }
+    }
+
+    private mutating func copyAttribute(
+        _ name: String,
+        from element: AXUIElement,
+        affectsReliability: Bool = true,
+        required: Bool = false
+    ) -> CFTypeRef? {
         guard !Task.isCancelled else {
             cancelled = true
             isReliable = false
@@ -391,12 +571,21 @@ private struct LiveTreeBuilder {
         var value: CFTypeRef?
         let error = AXUIElementCopyAttributeValue(element, name as CFString, &value)
         guard error == .success else {
-            switch error {
-            case .failure, .illegalArgument, .invalidUIElement, .cannotComplete,
-                 .notImplemented, .apiDisabled:
-                isReliable = false
-            default:
-                break
+            if affectsReliability {
+                let isHardFailure: Bool
+                switch error {
+                case .failure, .illegalArgument, .invalidUIElement, .cannotComplete,
+                     .notImplemented, .apiDisabled:
+                    isHardFailure = true
+                default:
+                    isHardFailure = false
+                }
+                if required || isHardFailure {
+                    zoomAXLogger.error(
+                        "AX read failed: attribute=\(name, privacy: .public) error=\(error.rawValue, privacy: .public) element=\(CFHash(element), privacy: .public)"
+                    )
+                    isReliable = false
+                }
             }
             if Task.isCancelled {
                 cancelled = true
@@ -405,5 +594,16 @@ private struct LiveTreeBuilder {
             return nil
         }
         return value
+    }
+
+    private mutating func markUnreliableType(
+        attribute: String,
+        element: AXUIElement,
+        detail: String
+    ) {
+        zoomAXLogger.error(
+            "AX read failed: attribute=\(attribute, privacy: .public) error=\(detail, privacy: .public) element=\(CFHash(element), privacy: .public)"
+        )
+        isReliable = false
     }
 }

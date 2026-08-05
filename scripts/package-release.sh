@@ -15,7 +15,7 @@ if [[ ! "$build_number" =~ ^[1-9][0-9]*$ ]]; then
   exit 64
 fi
 
-for required_tool in codesign ditto hdiutil lipo plutil shasum spctl unzip xattr xcodebuild xcodegen xcrun; do
+for required_tool in codesign ditto hdiutil lipo plutil security shasum spctl unzip xattr xcodebuild xcodegen xcrun; do
   if ! command -v "$required_tool" >/dev/null 2>&1; then
     echo "Required release tool is unavailable: $required_tool" >&2
     exit 69
@@ -35,7 +35,9 @@ app_zip_path="$dist_directory/$artifact_prefix-macOS-universal.zip"
 dsym_zip_path="$dist_directory/$artifact_prefix-dSYMs.zip"
 checksums_path="$dist_directory/$artifact_prefix-SHA256SUMS.txt"
 
-signing_identity="${MACOS_SIGNING_IDENTITY:-}"
+release_signing_identity="${MACOS_SIGNING_IDENTITY:-}"
+development_signing_identity="${MACOS_DEVELOPMENT_SIGNING_IDENTITY:-}"
+requested_signing_mode="${ROSTERWREN_SIGNING_MODE:-}"
 api_key_file="${APPLE_API_KEY_FILE:-}"
 api_key_id="${APPLE_API_KEY_ID:-}"
 api_issuer_id="${APPLE_API_ISSUER_ID:-}"
@@ -51,12 +53,64 @@ if [[ "$notary_value_count" -ne 0 && "$notary_value_count" -ne 3 ]]; then
   exit 78
 fi
 
-if [[ -n "$signing_identity" && "$notary_value_count" -ne 3 ]]; then
+if [[ -n "$release_signing_identity" && -n "$development_signing_identity" ]]; then
+  echo "Set either MACOS_SIGNING_IDENTITY or MACOS_DEVELOPMENT_SIGNING_IDENTITY, not both." >&2
+  exit 78
+fi
+
+case "$requested_signing_mode" in
+  ""|developer-id|adhoc) ;;
+  *)
+    echo "ROSTERWREN_SIGNING_MODE must be developer-id, adhoc, or unset." >&2
+    exit 78
+    ;;
+esac
+
+if [[ "$requested_signing_mode" == adhoc \
+  && ( -n "$release_signing_identity" || -n "$development_signing_identity" ) ]]; then
+  echo "Ad-hoc signing cannot be combined with a signing identity." >&2
+  exit 78
+fi
+
+if [[ "$requested_signing_mode" == developer-id \
+  && -n "$development_signing_identity" ]]; then
+  echo "Developer ID mode cannot use MACOS_DEVELOPMENT_SIGNING_IDENTITY." >&2
+  exit 78
+fi
+
+signing_mode=adhoc
+signing_identity=""
+if [[ -n "$release_signing_identity" ]]; then
+  signing_mode=developer-id
+  signing_identity="$release_signing_identity"
+elif [[ -n "$development_signing_identity" ]]; then
+  signing_mode=development
+  signing_identity="$development_signing_identity"
+elif [[ "$requested_signing_mode" == developer-id ]]; then
+  echo "Developer ID mode requires MACOS_SIGNING_IDENTITY." >&2
+  exit 78
+elif [[ "$requested_signing_mode" != adhoc \
+  && "${CI:-}" != true \
+  && "${GITHUB_ACTIONS:-}" != true ]]; then
+  # TCC privacy grants, including Accessibility, are associated with the app's
+  # designated requirement. Prefer a locally installed Apple Development
+  # identity so rebuilding the same app does not create a new ad-hoc identity.
+  development_signing_identity="$(
+    security find-identity -v -p codesigning 2>/dev/null \
+      | awk '/"Apple Development:/ { print $2; exit }'
+  )"
+  if [[ -n "$development_signing_identity" ]]; then
+    signing_mode=development
+    signing_identity="$development_signing_identity"
+  fi
+fi
+
+if [[ "$signing_mode" == developer-id && "$notary_value_count" -ne 3 ]]; then
   echo "Developer ID releases require complete notarization credentials." >&2
   exit 78
 fi
 
-if [[ -z "$signing_identity" && "$notary_value_count" -ne 0 ]]; then
+if [[ "$signing_mode" != developer-id && "$notary_value_count" -ne 0 ]]; then
   echo "Notarization credentials require a Developer ID signing identity." >&2
   exit 78
 fi
@@ -98,7 +152,7 @@ ditto "$source_app" "$working_app"
 xattr -cr "$working_app"
 xattr -d com.apple.FinderInfo "$working_app" 2>/dev/null || true
 
-if [[ -n "$signing_identity" ]]; then
+if [[ "$signing_mode" == developer-id ]]; then
   echo "Signing with Developer ID identity: $signing_identity"
   codesign \
     --force \
@@ -106,8 +160,17 @@ if [[ -n "$signing_identity" ]]; then
     --timestamp \
     --sign "$signing_identity" \
     "$working_app"
+elif [[ "$signing_mode" == development ]]; then
+  echo "Signing local package with Apple Development identity: $signing_identity"
+  codesign \
+    --force \
+    --options runtime \
+    --timestamp=none \
+    --sign "$signing_identity" \
+    "$working_app"
 else
-  echo "No release signing secrets were supplied; using an ad-hoc development signature."
+  echo "No stable signing identity is available; using an ad-hoc development signature."
+  echo "Accessibility permission may need to be removed and granted again after every rebuild." >&2
   codesign \
     --force \
     --options runtime \
@@ -133,7 +196,7 @@ for required_architecture in arm64 x86_64; do
   fi
 done
 
-if [[ "$notary_value_count" -eq 3 ]]; then
+if [[ "$signing_mode" == developer-id ]]; then
   notarization_zip="$temporary_directory/RosterWren-notarization.zip"
   ditto -c -k --sequesterRsrc --keepParent "$working_app" "$notarization_zip"
   xcrun notarytool submit "$notarization_zip" \
@@ -160,14 +223,16 @@ hdiutil create \
   -srcfolder "$image_directory" \
   "$dmg_path"
 
-if [[ -n "$signing_identity" ]]; then
+if [[ "$signing_mode" == developer-id ]]; then
   codesign --force --timestamp --sign "$signing_identity" "$dmg_path"
+elif [[ "$signing_mode" == development ]]; then
+  codesign --force --timestamp=none --sign "$signing_identity" "$dmg_path"
 else
   codesign --force --timestamp=none --sign - "$dmg_path"
 fi
 codesign --verify --verbose=2 "$dmg_path"
 
-if [[ "$notary_value_count" -eq 3 ]]; then
+if [[ "$signing_mode" == developer-id ]]; then
   xcrun notarytool submit "$dmg_path" \
     --key "$api_key_file" \
     --key-id "$api_key_id" \
