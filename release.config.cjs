@@ -58,9 +58,20 @@ module.exports = {
     [
       "@semantic-release/exec",
       {
-        prepareCmd: "./scripts/package-release.sh ${nextRelease.version}",
+        prepareCmd:
+          "node ./scripts/prepare-release.cjs ${nextRelease.version} ${lastRelease.version}",
         successCmd:
           "./scripts/publish-release-draft.sh ${nextRelease.gitTag} dist ${nextRelease.gitHead}",
+      },
+    ],
+    [
+      "@semantic-release/git",
+      {
+        assets: [
+          "project.yml",
+          "RosterWren.xcodeproj/project.pbxproj",
+        ],
+        message: "chore(release): ${nextRelease.version} [skip ci]",
       },
     ],
   ],

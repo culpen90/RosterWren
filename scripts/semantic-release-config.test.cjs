@@ -15,6 +15,13 @@ const test = require("node:test");
 
 const repositoryRoot = path.resolve(__dirname, "..");
 const releaseConfigPath = path.join(repositoryRoot, "release.config.cjs");
+const {
+  generatedProjectWithVersion,
+  generatedProjectVersions,
+  prepareRelease,
+  projectSpecWithVersion,
+  projectVersion,
+} = require(path.join(repositoryRoot, "scripts", "prepare-release.cjs"));
 
 function loadReleaseConfig(signingMode) {
   const environmentName = "ROSTERWREN_SIGNING_MODE";
@@ -48,10 +55,15 @@ const projectSpec = readFileSync(
   path.join(repositoryRoot, "project.yml"),
   "utf8",
 );
+const generatedProject = readFileSync(
+  path.join(repositoryRoot, "RosterWren.xcodeproj", "project.pbxproj"),
+  "utf8",
+);
 const sourceInfoPlist = readFileSync(
   path.join(repositoryRoot, "RosterWren", "Info.plist"),
   "utf8",
 );
+const configuredSourceVersion = projectVersion(projectSpec);
 const packageScript = path.join(
   repositoryRoot,
   "scripts",
@@ -128,6 +140,7 @@ test("release configuration publishes the complete macOS artifact set", () => {
       "@semantic-release/release-notes-generator",
       "@semantic-release/github",
       "@semantic-release/exec",
+      "@semantic-release/git",
     ],
   );
   assert.deepEqual(notesOptions, analyzerOptions);
@@ -135,11 +148,24 @@ test("release configuration publishes the complete macOS artifact set", () => {
   const execOptions = pluginEntries.get("@semantic-release/exec");
   assert.equal(
     execOptions.prepareCmd,
-    "./scripts/package-release.sh ${nextRelease.version}",
+    "node ./scripts/prepare-release.cjs ${nextRelease.version} ${lastRelease.version}",
   );
   assert.equal(
     execOptions.successCmd,
     "./scripts/publish-release-draft.sh ${nextRelease.gitTag} dist ${nextRelease.gitHead}",
+  );
+
+  const gitOptions = pluginEntries.get("@semantic-release/git");
+  assert.deepEqual(
+    gitOptions.assets,
+    [
+      "project.yml",
+      "RosterWren.xcodeproj/project.pbxproj",
+    ],
+  );
+  assert.equal(
+    gitOptions.message,
+    "chore(release): ${nextRelease.version} [skip ci]",
   );
 
   const githubOptions = pluginEntries.get("@semantic-release/github");
@@ -257,9 +283,17 @@ test("workflow guards publication and supplies the correct token", () => {
   assert.doesNotMatch(publishStep[0], /GH_TOKEN:/);
 });
 
-test("Xcode version metadata is injected at build time", () => {
-  assert.match(projectSpec, /MARKETING_VERSION: "0\.1\.0"/);
+test("Xcode source version metadata is valid and aligned", () => {
+  assert.match(
+    configuredSourceVersion,
+    /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/,
+  );
   assert.match(projectSpec, /CURRENT_PROJECT_VERSION: "1"/);
+  assert(
+    generatedProjectVersions(generatedProject).every(
+      (version) => version === configuredSourceVersion,
+    ),
+  );
   assert.match(
     projectSpec,
     /CFBundleShortVersionString: "\$\(MARKETING_VERSION\)"/,
@@ -276,6 +310,259 @@ test("Xcode version metadata is injected at build time", () => {
     sourceInfoPlist,
     /<string>\$\(CURRENT_PROJECT_VERSION\)<\/string>/,
   );
+});
+
+test("release preparation persists the version and fails closed", () => {
+  const temporaryDirectory = mkdtempSync(
+    path.join(os.tmpdir(), "rosterwren-version-test-"),
+  );
+  try {
+    const testRepository = path.join(temporaryDirectory, "repository");
+    const generatedProjectDirectory = path.join(
+      testRepository,
+      "RosterWren.xcodeproj",
+    );
+    mkdirSync(testRepository);
+    mkdirSync(generatedProjectDirectory);
+    writeFileSync(path.join(testRepository, "project.yml"), projectSpec);
+    writeFileSync(
+      path.join(generatedProjectDirectory, "project.pbxproj"),
+      generatedProject,
+    );
+    writeFileSync(
+      path.join(testRepository, "unexpected.txt"),
+      "original contents\n",
+    );
+
+    execFileSync("git", ["init", "-b", "main"], { cwd: testRepository });
+    execFileSync("git", ["config", "user.name", "Release Test"], {
+      cwd: testRepository,
+    });
+    execFileSync("git", ["config", "user.email", "release@example.invalid"], {
+      cwd: testRepository,
+    });
+    execFileSync("git", ["add", "."], { cwd: testRepository });
+    execFileSync(
+      "git",
+      [
+        "-c",
+        "commit.gpgsign=false",
+        "commit",
+        "-m",
+        "test: add version fixtures",
+      ],
+      { cwd: testRepository },
+    );
+
+    const [major, minor, patchVersion] = configuredSourceVersion
+      .split(".")
+      .map(Number);
+    const nextVersion = `${major}.${minor}.${patchVersion + 1}`;
+    const generateProject = (repository, version) => {
+      assert.equal(
+        projectVersion(
+          readFileSync(path.join(repository, "project.yml"), "utf8"),
+        ),
+        version,
+      );
+      const generatedPath = path.join(
+        repository,
+        "RosterWren.xcodeproj",
+        "project.pbxproj",
+      );
+      const contents = readFileSync(generatedPath, "utf8");
+      writeFileSync(
+        generatedPath,
+        generatedProjectWithVersion(contents, version),
+      );
+    };
+
+    const prepared = prepareRelease(nextVersion, {
+      expectedPreviousVersion: configuredSourceVersion,
+      repositoryRoot: testRepository,
+      packageRelease: generateProject,
+    });
+    assert.deepEqual(prepared, {
+      changed: true,
+      previousVersion: configuredSourceVersion,
+      version: nextVersion,
+    });
+    assert.equal(
+      projectVersion(
+        readFileSync(path.join(testRepository, "project.yml"), "utf8"),
+      ),
+      nextVersion,
+    );
+    assert(
+      generatedProjectVersions(
+        readFileSync(
+          path.join(generatedProjectDirectory, "project.pbxproj"),
+          "utf8",
+        ),
+      ).every((version) => version === nextVersion),
+    );
+    assert.deepEqual(
+      execFileSync("git", ["diff", "--name-only"], {
+        cwd: testRepository,
+        encoding: "utf8",
+      }).trim().split("\n").sort(),
+      [
+        "RosterWren.xcodeproj/project.pbxproj",
+        "project.yml",
+      ],
+    );
+
+    execFileSync("git", ["add", "."], { cwd: testRepository });
+    execFileSync(
+      "git",
+      [
+        "-c",
+        "commit.gpgsign=false",
+        "commit",
+        "-m",
+        `chore(release): ${nextVersion} [skip ci]`,
+      ],
+      { cwd: testRepository },
+    );
+    assert.deepEqual(
+      prepareRelease(nextVersion, {
+        expectedPreviousVersion: configuredSourceVersion,
+        repositoryRoot: testRepository,
+        packageRelease: generateProject,
+      }),
+      {
+        changed: false,
+        previousVersion: nextVersion,
+        version: nextVersion,
+      },
+    );
+
+    execFileSync(
+      "git",
+      [
+        "-c",
+        "commit.gpgsign=false",
+        "commit",
+        "--amend",
+        "-m",
+        "feat: manually bump source version",
+      ],
+      { cwd: testRepository },
+    );
+    let driftPackagingStarted = false;
+    assert.throws(
+      () => prepareRelease(nextVersion, {
+        expectedPreviousVersion: configuredSourceVersion,
+        repositoryRoot: testRepository,
+        packageRelease() {
+          driftPackagingStarted = true;
+        },
+      }),
+      /does not match the previous release/,
+    );
+    assert.equal(driftPackagingStarted, false);
+
+    const failedVersion = `${major}.${minor}.${patchVersion + 2}`;
+    assert.throws(
+      () => prepareRelease(failedVersion, {
+        expectedPreviousVersion: nextVersion,
+        repositoryRoot: testRepository,
+        packageRelease() {
+          throw new Error("simulated packaging failure");
+        },
+      }),
+      /simulated packaging failure/,
+    );
+    assert.equal(
+      projectVersion(
+        readFileSync(path.join(testRepository, "project.yml"), "utf8"),
+      ),
+      nextVersion,
+    );
+    assert.equal(
+      execFileSync("git", ["status", "--porcelain"], {
+        cwd: testRepository,
+        encoding: "utf8",
+      }),
+      "",
+    );
+
+    assert.throws(
+      () => prepareRelease(failedVersion, {
+        expectedPreviousVersion: nextVersion,
+        repositoryRoot: testRepository,
+        packageRelease(repository, version) {
+          generateProject(repository, version);
+          const generatedPath = path.join(
+            repository,
+            "RosterWren.xcodeproj",
+            "project.pbxproj",
+          );
+          writeFileSync(
+            generatedPath,
+            `${readFileSync(generatedPath, "utf8")}\n// unexpected setting\n`,
+          );
+        },
+      }),
+      /non-version source metadata/,
+    );
+    assert.equal(
+      execFileSync("git", ["status", "--porcelain"], {
+        cwd: testRepository,
+        encoding: "utf8",
+      }),
+      "",
+    );
+
+    assert.throws(
+      () => prepareRelease(failedVersion, {
+        expectedPreviousVersion: nextVersion,
+        repositoryRoot: testRepository,
+        packageRelease(repository, version) {
+          generateProject(repository, version);
+          writeFileSync(
+            path.join(repository, "unexpected.txt"),
+            "changed during packaging\n",
+          );
+        },
+      }),
+      /unexpected worktree files/,
+    );
+    assert.equal(
+      readFileSync(path.join(testRepository, "unexpected.txt"), "utf8"),
+      "original contents\n",
+    );
+    assert.equal(
+      execFileSync("git", ["status", "--porcelain"], {
+        cwd: testRepository,
+        encoding: "utf8",
+      }),
+      "",
+    );
+
+    const untrackedSource = path.join(testRepository, "Untracked.swift");
+    writeFileSync(untrackedSource, "struct UntrackedReleaseSource {}\n");
+    let packagingStarted = false;
+    assert.throws(
+      () => prepareRelease(failedVersion, {
+        expectedPreviousVersion: nextVersion,
+        repositoryRoot: testRepository,
+        packageRelease() {
+          packagingStarted = true;
+        },
+      }),
+      /clean worktree/,
+    );
+    assert.equal(packagingStarted, false);
+    rmSync(untrackedSource);
+
+    assert.throws(
+      () => projectSpecWithVersion(projectSpec, "1.02.3"),
+      /stable major\.minor\.patch/,
+    );
+  } finally {
+    rmSync(temporaryDirectory, { recursive: true, force: true });
+  }
 });
 
 test("package script rejects invalid release versions before building", () => {
@@ -351,7 +638,7 @@ test("local packaging derives its default version from project metadata", () => 
     },
   );
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout.trim(), "0.1.0");
+  assert.equal(result.stdout.trim(), configuredSourceVersion);
 });
 
 test("release reconciliation rebuilds the exact tag and fails closed", () => {
